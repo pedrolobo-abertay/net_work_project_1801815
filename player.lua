@@ -1,75 +1,56 @@
-function love.load()
 
-  bullet_speed = 800
-  mov_vec = {x = 0, y = 0}
-  new_pos =  {0, 0}
-  time = 0
-	timeLimit = 0
-  timer_on = false
+local function normalize(mov_vec)
 
-  love.window.setMode(1920, 1080)
+  local l=(mov_vec.x * mov_vec.x + mov_vec.y * mov_vec.y)^.5
 
-  bullets = {}
+  if l == 0 then
+    return
+  end
 
+  mov_vec.x = mov_vec.x/l
+  mov_vec.y = mov_vec.y/l
 end
 
-local function _draw(self)
-
-  love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
-
+function _draw(self)
   love.graphics.setColor(1.0, 0.5, 0.5)
-	for i,v in ipairs(bullets) do
-		love.graphics.circle("fill", v.x, v.y, 10)
-	end
 
+  love.graphics.circle("fill", self.pos.x, self.pos.y, self.radius)
 end
 
-local function _update(dt)
-  if love.keyboard.isDown("w") then
-    mov_vec.y = mov_vec.y - 1
-  elseif love.keyboard.isDown("s") then
-    mov_vec.y = mov_vec.y + 1
-  elseif love.keyboard.isDown("d") then
-    mov_vec.x = mov_vec.x + 1
-  elseif love.keyboard.isDown("a") then
-    mov_vec.x = mov_vec.x - 1
+local function _update(self, dt)
+  self.mov_vec = {x = 0, y = 0};
+  if self.movement_input.up then
+    self.mov_vec.y = self.mov_vec.y - 1
+  end
+  if self.movement_input.down then
+    self.mov_vec.y = self.mov_vec.y + 1
+  end
+  if self.movement_input.right then
+    self.mov_vec.x = self.mov_vec.x + 1
+  end
+  if self.movement_input.left then
+    self.mov_vec.x = self.mov_vec.x - 1
   end
 
-  new_pos[1] = player1.x + mov_vec.x * dt * player1.speed
-  new_pos[2] = player1.y + mov_vec.y * dt * player1.speed
+  normalize(self.mov_vec)
 
-  if new_pos[1] > 10 and new_pos[1] < 1920 - 50 and new_pos[2] > 10 and new_pos[2] < 1080 - 50 then
-    player1.x = new_pos[1]
-    player1.y = new_pos[2]
-  else
-    new_pos[1] = player1.x
-    new_pos[2] = player1.y
-  end
+  self.pos.x = self.pos.x + self.mov_vec.x * dt * self.speed
+  self.pos.y = self.pos.y + self.mov_vec.y * dt * self.speed
 
-  mov_vec.x = 0
-  mov_vec.y = 0
-
-  for i, v in ipairs(bullets) do
-  		v.x = v.x + (v.dx * dt)
-  		v.y = v.y + (v.dy * dt)
-        if v.x < 10 or v.x > 1920 - 50 or v.y < 10 or v.y > 1080 - 500 then
-          table.remove(bullets)
-        end
-  	end
-
+  --[[
   if timer_on then
     time = time + dt
   	if time >= timeLimit then
   		time = 0
       timer_on = false
   	end
-  end
+  end]]
 
 end
 
-local function  _handle_input(up, down, left, right, shoot)
+local function _handle_input(self, input, args)
 
-  if button == 1 and not timer_on then
+  if input == "shoot" and not timer_on then
     local startX = player1.x + player1.width / 2
     local startY = player1.y + player1.height / 2
     local mouseX = x
@@ -83,24 +64,28 @@ local function  _handle_input(up, down, left, right, shoot)
     table.insert(bullets, {x = startX, y = startY, dx = bulletDx, dy = bulletDy})
 
     timer_on = true
+  elseif input == "movement" then
+    self.movement_input[args.direction] = args.state
   end
 end
 
 local function _create_player(pos)
   local player = {
 
-    pos = {pos[1], pos[2]},
-    new_pos =  {pos[1], pos[2]},
-
+    mov_vec = {x = 0, y = 0},
+    radius = 10,
+    shoot_cooldown = 1,
+  	shoot_timer = 0,
+    speed = 500,
+    pos = {x = pos[1], y = pos[2]},
     type = "player",
 
-    level = level,
+    movement_input = {up = false, down = false, left = false, right = false},
 
     --functions
     draw = _draw,
-    update_pos = _update_pos,
-    update_new_pos = _update_new_pos,
-    handle_input = _handle_input
+    update = _update,
+    handle_input = _handle_input,
   }
   return player
 end
