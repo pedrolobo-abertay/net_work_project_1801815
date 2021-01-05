@@ -1,16 +1,20 @@
 local player
+local projectile
 
 function love.load()
   love.window.setMode(1920, 1080)
   player = require "player"({100, 100})
+  projectile = require "projectile"({300, 300}, {1, 1}, 1)
 end
 
 function love.draw()
   player:draw()
+  projectile:draw()
 end
 
 function love.update(dt)
   player:update(dt)
+  projectile:update(dt)
 end
 
 function love.mousepressed(x, y, button)
