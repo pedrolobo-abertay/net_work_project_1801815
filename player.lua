@@ -1,3 +1,4 @@
+local Projectile = require("projectile")
 
 local function normalize(mov_vec)
 
@@ -50,20 +51,14 @@ end
 
 local function _handle_input(self, input, args)
 
-  if input == "shoot" and not timer_on then
-    local startX = player1.x + player1.width / 2
-    local startY = player1.y + player1.height / 2
-    local mouseX = x
-    local mouseY = y
+  if input == "shoot" and self.shoot_timer <= 0 then
+    self.shoot_timer = self.shoot_timer + self.shoot_cooldown
 
-    local angle = math.atan2((mouseY - startY), (mouseX - startX))
+    local direction
+    local projectile = Projectile(self.pos, args.mouse, self.onwer)
 
-    local bulletDx = bullet_speed * math.cos(angle)
-    local bulletDy = bullet_speed * math.sin(angle)
+    table.insert(self.bullets, projectiles)
 
-    table.insert(bullets, {x = startX, y = startY, dx = bulletDx, dy = bulletDy})
-
-    timer_on = true
   elseif input == "movement" then
     self.movement_input[args.direction] = args.state
   end
@@ -72,13 +67,15 @@ end
 local function _create_player(pos)
   local player = {
 
+    owner = 1,
     mov_vec = {x = 0, y = 0},
     radius = 10,
     shoot_cooldown = 1,
   	shoot_timer = 0,
     speed = 500,
-    pos = {x = pos[1], y = pos[2]},
+    pos = {x = pos.x, y = pos.y},
     type = "player",
+    bullets = {},
 
     movement_input = {up = false, down = false, left = false, right = false},
 

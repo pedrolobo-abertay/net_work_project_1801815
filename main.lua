@@ -1,24 +1,30 @@
 local player
-local projectile
+local projectiles = {}
 
 function love.load()
   love.window.setMode(1920, 1080)
-  player = require "player"({100, 100})
-  projectile = require "projectile"({300, 300}, {1, 1}, 1)
+  player = require "player"({x = 100, y = 100})
 end
 
 function love.draw()
   player:draw()
-  projectile:draw()
+  for i, projectile in ipairs(projectiles) do
+    projectile:draw()
+  end
 end
 
 function love.update(dt)
   player:update(dt)
-  projectile:update(dt)
+  --itera por projeteis do jogador
+  for i, projectile in ipairs(projectiles) do
+    projectile:update(dt)
+  end
 end
 
 function love.mousepressed(x, y, button)
-
+  if button == 1 then
+    player:handle_input("shoot", {mouse = {x, y}})
+  end
 end
 
 function love.keypressed(key, scancode, isrepeat)
@@ -43,4 +49,8 @@ function love.keyreleased(key)
   elseif key == "a" then
     player:handle_input("movement", {direction = "left", state = false})
   end
+end
+
+function create_projectile(pos, direction, onwer)
+  table.insert(projectiles, require "projectile" (pos, direction, onwer))
 end

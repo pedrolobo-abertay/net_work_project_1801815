@@ -18,9 +18,9 @@ function _create_projectile(pos, direction, owner)
   local projectile = {
     radius = 50,
     speed = 500,
-    pos = {x = pos[1], y = pos[2]},
+    pos = {x = pos.x, y = pos.y},
     type = "projectile",
-    direction = {x = direction[1], y = direction[2]},
+    direction = {x = direction.x, y = direction.y},
     owner = owner,
 
     update = _update,
