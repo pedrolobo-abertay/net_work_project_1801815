@@ -15,7 +15,10 @@ end
 
 function love.update(dt)
   player:update(dt)
-  --itera por projeteis do jogador
+  for i, bullet in ipairs(player.bullets) do
+    table.insert(projectiles, bullet)
+    table.remove(player.bullets)
+  end
   for i, projectile in ipairs(projectiles) do
     projectile:update(dt)
   end

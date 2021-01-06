@@ -54,10 +54,11 @@ local function _handle_input(self, input, args)
   if input == "shoot" and self.shoot_timer <= 0 then
     self.shoot_timer = self.shoot_timer + self.shoot_cooldown
 
-    local direction
-    local projectile = Projectile(self.pos, args.mouse, self.onwer)
+    local direction = {x = args.mouse.x, y = args.mouse.y}
 
-    table.insert(self.bullets, projectiles)
+    local projectile = Projectile(self.pos, direction, self.onwer)
+
+    table.insert(self.bullets, projectile)
 
   elseif input == "movement" then
     self.movement_input[args.direction] = args.state
