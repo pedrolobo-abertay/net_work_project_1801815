@@ -38,14 +38,7 @@ local function _update(self, dt)
   self.pos.x = self.pos.x + self.mov_vec.x * dt * self.speed
   self.pos.y = self.pos.y + self.mov_vec.y * dt * self.speed
 
-  --[[
-  if timer_on then
-    time = time + dt
-  	if time >= timeLimit then
-  		time = 0
-      timer_on = false
-  	end
-  end]]
+  self.shoot_timer = math.max(self.shoot_timer - dt, 0)
 
 end
 
@@ -54,8 +47,8 @@ local function _handle_input(self, input, args)
   if input == "shoot" and self.shoot_timer <= 0 then
     self.shoot_timer = self.shoot_timer + self.shoot_cooldown
 
-    local direction = {x = args.mouse.x, y = args.mouse.y}
-
+    local direction = {x = args.mouse.x - self.pos.x, y = args.mouse.y - self.pos.y}
+    normalize(direction)
     local projectile = Projectile(self.pos, direction, self.onwer)
 
     table.insert(self.bullets, projectile)
@@ -71,7 +64,7 @@ local function _create_player(pos)
     owner = 1,
     mov_vec = {x = 0, y = 0},
     radius = 10,
-    shoot_cooldown = 1,
+    shoot_cooldown = 0.3,
   	shoot_timer = 0,
     speed = 500,
     pos = {x = pos.x, y = pos.y},

@@ -1,8 +1,9 @@
+SCREEN_SIZE = {x = 1920, y = 1080}
 local player
 local projectiles = {}
 
 function love.load()
-  love.window.setMode(1920, 1080)
+  love.window.setMode(SCREEN_SIZE.x, SCREEN_SIZE.y)
   player = require "player"({x = 100, y = 100})
 end
 
@@ -22,11 +23,16 @@ function love.update(dt)
   for i, projectile in ipairs(projectiles) do
     projectile:update(dt)
   end
+  for i = #projectiles, 1, -1 do
+    if projectiles[i].kill then
+      table.remove(projectiles, i)
+    end
+  end
 end
 
 function love.mousepressed(x, y, button)
   if button == 1 then
-    player:handle_input("shoot", {mouse = {x, y}})
+    player:handle_input("shoot", {mouse = {x = x, y = y}})
   end
 end
 
