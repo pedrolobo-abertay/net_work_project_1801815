@@ -38,6 +38,12 @@ local function _update(self, dt)
   self.pos.x = self.pos.x + self.mov_vec.x * dt * self.speed
   self.pos.y = self.pos.y + self.mov_vec.y * dt * self.speed
 
+  self.pos.x = math.min(self.pos.x, SCREEN_SIZE.x - self.radius)
+  self.pos.x = math.max(self.pos.x, self.radius)
+
+  self.pos.y = math.min(self.pos.y, SCREEN_SIZE.y - self.radius)
+  self.pos.y = math.max(self.pos.y, self.radius)
+
   self.shoot_timer = math.max(self.shoot_timer - dt, 0)
 
 end
@@ -49,7 +55,7 @@ local function _handle_input(self, input, args)
 
     local direction = {x = args.mouse.x - self.pos.x, y = args.mouse.y - self.pos.y}
     normalize(direction)
-    local projectile = Projectile(self.pos, direction, self.onwer)
+    local projectile = Projectile(self.pos, direction, self.id)
 
     table.insert(self.bullets, projectile)
 
@@ -58,10 +64,10 @@ local function _handle_input(self, input, args)
   end
 end
 
-local function _create_player(pos)
+local function _create_player(pos, id)
   local player = {
 
-    owner = 1,
+    id = id,
     mov_vec = {x = 0, y = 0},
     radius = 10,
     shoot_cooldown = 0.3,
