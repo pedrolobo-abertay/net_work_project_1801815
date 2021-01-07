@@ -13,7 +13,7 @@ local function normalize(mov_vec)
 end
 
 function _draw(self)
-  love.graphics.setColor(1.0, 0.5, 0.5)
+  love.graphics.setColor(self.color.r, self.color.g, self.color.b)
 
   love.graphics.circle("fill", self.pos.x, self.pos.y, self.radius)
 end
@@ -55,7 +55,9 @@ local function _handle_input(self, input, args)
 
     local direction = {x = args.mouse.x - self.pos.x, y = args.mouse.y - self.pos.y}
     normalize(direction)
-    local projectile = Projectile(self.pos, direction, self.id)
+    local shade = .5
+    local color = {r = self.color.r*shade, g = self.color.g*shade, b = self.color.b*shade}
+    local projectile = Projectile(self.pos, direction, self.id, color)
 
     table.insert(self.bullets, projectile)
 
@@ -64,7 +66,7 @@ local function _handle_input(self, input, args)
   end
 end
 
-local function _create_player(pos, id)
+local function _create_player(pos, id, color)
   local player = {
 
     id = id,
@@ -76,6 +78,7 @@ local function _create_player(pos, id)
     pos = {x = pos.x, y = pos.y},
     type = "player",
     bullets = {},
+    color = {r = color.r, g = color.g, b = color.b},
 
     movement_input = {up = false, down = false, left = false, right = false},
 

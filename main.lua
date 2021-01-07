@@ -82,12 +82,8 @@ function love.keyreleased(key)
   end
 end
 
-function create_projectile(pos, direction, onwer)
-  table.insert(projectiles, sequire "projectile" (pos, direction, onwer))
-end
-
 function create_player(id)
-  local pos
+  local pos, color
   player_number = player_number + 1
   if not active_player then
     active_player = 1
@@ -95,13 +91,17 @@ function create_player(id)
 
   if id == 1 then
     pos = {x = 100, y = 100}
+    color = {r = 1, g = 1, b = 1}
   elseif id == 2 then
     pos = {x = 100, y = 500}
+    color = {r = 0, g = 1, b = 1}
   elseif id == 3 then
     pos = {x = 500, y = 100}
+    color = {r = 1, g = 0, b = 1}
   elseif id == 4 then
     pos = {x = 500, y = 500}
+    color = {r = 1, g = 1, b = 0}
   end
 
-  table.insert(players, require "player"({x = pos.x, y = pos.y}, id))
+  table.insert(players, require "player"({x = pos.x, y = pos.y}, id, color))
 end

@@ -1,6 +1,6 @@
 function _draw(self)
 
-  love.graphics.setColor(1.0, 1.0, 0.5)
+  love.graphics.setColor(self.color.r, self.color.g, self.color.b)
 
   love.graphics.circle("fill", self.pos.x, self.pos.y, self.radius)
 
@@ -17,7 +17,7 @@ function _update(self, dt)
   end
 end
 
-function _create_projectile(pos, direction, owner)
+function _create_projectile(pos, direction, owner, color)
 
   local projectile = {
     kill = false,
@@ -27,6 +27,7 @@ function _create_projectile(pos, direction, owner)
     type = "projectile",
     direction = {x = direction.x, y = direction.y},
     owner = owner,
+    color = color,
 
     update = _update,
     draw = _draw,
