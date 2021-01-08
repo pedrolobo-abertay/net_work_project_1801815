@@ -22,6 +22,7 @@ end
 function love.update(dt)
   for _, player in ipairs(players) do
     player:update(dt)
+
     for i, bullet in ipairs(player.bullets) do
       table.insert(projectiles, bullet)
       table.remove(player.bullets)
@@ -31,6 +32,15 @@ function love.update(dt)
   for i, projectile in ipairs(projectiles) do
     projectile:update(dt)
   end
+
+  check_collisions()
+
+  for i = #players, 1, -1 do
+    if players[i].dead then
+      table.remove(players, i)
+    end
+  end
+
   for i = #projectiles, 1, -1 do
     if projectiles[i].kill then
       table.remove(projectiles, i)
@@ -104,4 +114,17 @@ function create_player(id)
   end
 
   table.insert(players, require "player"({x = pos.x, y = pos.y}, id, color))
+end
+
+function check_collisions()
+  for _, player in ipairs(players) do
+    for _, projectile in ipairs(projectiles) do
+      local distance = math.sqrt(math.pow(player.pos.x - projectile.pos.x, 2) + math.pow(player.pos.y - projectile.pos.y, 2))
+      if distance < player.radius + projectile.radius and
+         player.id ~= projectile.owner then
+           player:take_damage()
+           projectile.kill = true
+      end
+    end
+  end
 end

@@ -28,7 +28,6 @@ function _create_projectile(pos, direction, owner, color)
     direction = {x = direction.x, y = direction.y},
     owner = owner,
     color = color,
-
     update = _update,
     draw = _draw,
   }

@@ -66,10 +66,19 @@ local function _handle_input(self, input, args)
   end
 end
 
+local function _take_damage(self)
+  self.health = self.health - self.damage
+  if self.health <= 0 then
+    self.dead = true
+  end
+end
+
 local function _create_player(pos, id, color)
   local player = {
 
+    health = 100,
     id = id,
+    damage = 10,
     mov_vec = {x = 0, y = 0},
     radius = 10,
     shoot_cooldown = 0.3,
@@ -79,13 +88,14 @@ local function _create_player(pos, id, color)
     type = "player",
     bullets = {},
     color = {r = color.r, g = color.g, b = color.b},
-
+    dead = false,
     movement_input = {up = false, down = false, left = false, right = false},
 
     --functions
     draw = _draw,
     update = _update,
     handle_input = _handle_input,
+    take_damage = _take_damage,
   }
   return player
 end
