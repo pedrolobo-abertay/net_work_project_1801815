@@ -9,6 +9,7 @@ local projectiles = {}
 local active_player
 local player_number = 0
 local PLAYER_MAX = 4
+local players_info = {}
 
 function love.load()
   UDP = socket.udp()
@@ -26,18 +27,8 @@ function love.draw()
 end
 
 function love.update(dt)
-  local data, msg_or_ip, port_or_nil
-  local id, command, args
 
-  data, msg_or_ip, port_or_nil = UDP:receivefrom()
-
-  if data then
-    print(data)
-    id, command, args = data:match("^(%d+) (%S*) (.*)")
-    print(id, command, args)
-  elseif msg_or_ip ~= "timeout" then
-    error("unknown network error:"..tostring(msg_or_ip))
-  end
+  receive_client_data()
 
   for _, player in ipairs(players) do
     player:update(dt)
@@ -65,6 +56,9 @@ function love.update(dt)
       table.remove(projectiles, i)
     end
   end
+
+  send_world_state()
+
 end
 
 function love.mousepressed(x, y, button)
@@ -76,9 +70,9 @@ function love.mousepressed(x, y, button)
 end
 
 function love.keypressed(key, scancode, isrepeat)
-  if key == "q" and player_number < PLAYER_MAX then
-    create_player(player_number+1)
-  end
+--  if key == "q" and player_number < PLAYER_MAX then
+  --  create_player(player_number+1)
+--  end
 
   if active_player then
     if key == "w" then
@@ -144,6 +138,40 @@ function check_collisions()
            player:take_damage()
            projectile.kill = true
       end
+    end
+  end
+end
+
+function receive_client_data()
+  local data, msg_or_ip, port_or_nil
+  local id, command, args
+
+  data, msg_or_ip, port_or_nil = UDP:receivefrom()
+
+  if data then
+    id, command, args = data:match("^(%d+) (%S*) (.*)")
+    if command == "new_player" then
+      if player_number < PLAYER_MAX then
+        create_player(player_number+1)
+        table.insert(players_info, {id = id, ip = msg_or_ip, port = port_or_nil})
+      end
+    end
+  elseif msg_or_ip ~= "timeout" then
+    error("unknown network error:"..tostring(msg_or_ip))
+  end
+end
+
+function send_world_state()
+  for i, info in ipairs(players_info) do
+    for i, player in ipairs(players) do
+      local message = string.format("%s %s %s %d %d", "pos", "player",
+                                    tostring(player), player.pos.x, player.pos.y)
+      UDP:sendto(message, info.ip, info.port)
+    end
+    for i, projectile in ipairs(projectiles) do
+      local message = string.format("%s %s %s %d %d %d", "pos", "projectile",
+                                    tostring(projectile), projectile.pos.x, projectile.pos.y, projectile.owner)
+      UDP:sendto(message, info.ip, info.port)
     end
   end
 end

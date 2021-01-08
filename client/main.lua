@@ -6,6 +6,9 @@ local port = 12345
 local UDP
 local id
 
+local players = {}
+local projectiles = {}
+
 function love.load()
 
   love.window.setMode(SCREEN_SIZE.x, SCREEN_SIZE.y)
@@ -18,7 +21,45 @@ function love.load()
   UDP:settimeout(0)
   UDP:setpeername(address, port)
 
-  local message = string.format("%d %s %s", id, "new_player", "test")
+  local message = string.format("%d %s %s", id, "new_player", "0")
 
   UDP:send(message)
+end
+
+function love.draw()
+  for _, player in pairs(players) do
+    player:draw()
+  end
+  for i, projectile in pairs(projectiles) do
+    projectile:draw()
+  end
+end
+
+function love.update(dt)
+  local data, message
+
+  repeat
+    data, message = UDP:receive()
+    if data then
+      local command, args = data:match("^(%S+) (.*)")
+      if command == "pos" then
+        local type, id, args2 = args:match("^(%S+) (table: %S+) (.*)")
+        if type == "player" then
+          local x, y = args2:match("^(%S+) (%S+)")
+          if players[id] then
+            players[id].pos.x = tonumber(x)
+            players[id].pos.y = tonumber(y)
+          else
+            create_player(id, tonumber(x), tonumber(y))
+          end
+        end
+      end
+    elseif message ~= "timeout" then
+      error("network error:"..tostring(message))
+    end
+  until not data
+end
+
+function create_player(id, x, y)
+  players[id] = require "player"({x = x, y = y})
 end
