@@ -52,12 +52,27 @@ function love.update(dt)
           else
             create_player(id, tonumber(x), tonumber(y))
           end
+        elseif type == "projectile" then
+          local x, y = args2:match("^(%S+) (%S+)")
+          if projectiles[id] then
+            projectiles[id].pos.x = tonumber(x)
+            projectiles[id].pos.y = tonumber(y)
+          else
+            create_projectile(id, tonumber(x), tonumber(y))
+          end
         end
       end
     elseif message ~= "timeout" then
       error("network error:"..tostring(message))
     end
   until not data
+end
+
+function love.mousepressed(x, y, button)
+  if button == 1 then
+    local message = string.format("%d %s %s %d %d", id, "input", "shoot", x, y)
+    UDP:send(message)
+  end
 end
 
 function love.keypressed(key, scancode, isrepeat)
@@ -94,4 +109,8 @@ end
 
 function create_player(id, x, y)
   players[id] = require "player"({x = x, y = y})
+end
+
+function create_projectile(id, x, y)
+  projectiles[id] = require "projectile"({x=x, y=y})
 end

@@ -61,16 +61,7 @@ function love.update(dt)
 
 end
 
-function love.mousepressed(x, y, button)
-  if active_player then
-    if button == 1 then
-      players[active_player]:handle_input("shoot", {mouse = {x = x, y = y}})
-    end
-  end
-end
-
 function love.keypressed(key, scancode, isrepeat)
-
 end
 
 
@@ -136,6 +127,9 @@ function receive_client_data()
       if type == "movement" then
         local direction, state = args2:match("^(%S+) (%S+)")
         players[which_player]:handle_input("movement", {direction = direction, state = state == "true"})
+      elseif type == "shoot" then
+        local x, y = args2:match("^(%S+) (%S+)")
+        players[which_player]:handle_input("shoot", {mouse = {x = x, y = y}})
       end
     end
   elseif msg_or_ip ~= "timeout" then
