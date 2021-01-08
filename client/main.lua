@@ -36,36 +36,7 @@ function love.draw()
 end
 
 function love.update(dt)
-  local data, message
-
-  repeat
-    data, message = UDP:receive()
-    if data then
-      local command, args = data:match("^(%S+) (.*)")
-      if command == "pos" then
-        local type, id, args2 = args:match("^(%S+) (table: %S+) (.*)")
-        if type == "player" then
-          local x, y = args2:match("^(%S+) (%S+)")
-          if players[id] then
-            players[id].pos.x = tonumber(x)
-            players[id].pos.y = tonumber(y)
-          else
-            create_player(id, tonumber(x), tonumber(y))
-          end
-        elseif type == "projectile" then
-          local x, y = args2:match("^(%S+) (%S+)")
-          if projectiles[id] then
-            projectiles[id].pos.x = tonumber(x)
-            projectiles[id].pos.y = tonumber(y)
-          else
-            create_projectile(id, tonumber(x), tonumber(y))
-          end
-        end
-      end
-    elseif message ~= "timeout" then
-      error("network error:"..tostring(message))
-    end
-  until not data
+  receive_server_data()
 end
 
 function love.mousepressed(x, y, button)
@@ -113,4 +84,43 @@ end
 
 function create_projectile(id, x, y)
   projectiles[id] = require "projectile"({x=x, y=y})
+end
+
+
+function receive_server_data()
+  local data, message
+
+  repeat
+    data, message = UDP:receive()
+    if data then
+      local command, args = data:match("^(%S+) (.*)")
+      if command == "pos" then
+        local type, id, args2 = args:match("^(%S+) (table: %S+) (.*)")
+        if type == "player" then
+          local x, y = args2:match("^(%S+) (%S+)")
+          if players[id] then
+            players[id].pos.x = tonumber(x)
+            players[id].pos.y = tonumber(y)
+          else
+            create_player(id, tonumber(x), tonumber(y))
+          end
+        elseif type == "projectile" then
+          local x, y = args2:match("^(%S+) (%S+)")
+          if projectiles[id] then
+            projectiles[id].pos.x = tonumber(x)
+            projectiles[id].pos.y = tonumber(y)
+          else
+            create_projectile(id, tonumber(x), tonumber(y))
+          end
+        end
+      elseif command == "kill" then
+        local type, id = args:match("^(%S+) (table: %S+)")
+        if type == "projectile" then
+          projectiles[id] = nil
+        end
+      end
+    elseif message ~= "timeout" then
+      error("network error:"..tostring(message))
+    end
+  until not data
 end

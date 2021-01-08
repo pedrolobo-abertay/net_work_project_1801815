@@ -53,6 +53,10 @@ function love.update(dt)
 
   for i = #projectiles, 1, -1 do
     if projectiles[i].kill then
+      local message = string.format("%s %s %s", "kill", "projectile", tostring(projectiles[i]))
+      for i, info in ipairs(players_info) do
+        UDP:sendto(message, info.ip, info.port)
+      end
       table.remove(projectiles, i)
     end
   end
