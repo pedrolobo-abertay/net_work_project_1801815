@@ -1,4 +1,9 @@
 SCREEN_SIZE = {x = 1920, y = 1080}
+
+local socket = require "socket"
+local port = 12345
+local UDP
+
 local players = {}
 local projectiles = {}
 local active_player
@@ -6,8 +11,9 @@ local player_number = 0
 local PLAYER_MAX = 4
 
 function love.load()
-  love.window.setMode(SCREEN_SIZE.x, SCREEN_SIZE.y)
-
+  UDP = socket.udp()
+  UDP:setsockname("*", port)
+  UDP:settimeout(0)
 end
 
 function love.draw()
@@ -20,6 +26,19 @@ function love.draw()
 end
 
 function love.update(dt)
+  local data, msg_or_ip, port_or_nil
+  local id, command, args
+
+  data, msg_or_ip, port_or_nil = UDP:receivefrom()
+
+  if data then
+    print(data)
+    id, command, args = data:match("^(%d+) (%S*) (.*)")
+    print(id, command, args)
+  elseif msg_or_ip ~= "timeout" then
+    error("unknown network error:"..tostring(msg_or_ip))
+  end
+
   for _, player in ipairs(players) do
     player:update(dt)
 
