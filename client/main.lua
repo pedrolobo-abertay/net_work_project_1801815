@@ -60,6 +60,38 @@ function love.update(dt)
   until not data
 end
 
+function love.keypressed(key, scancode, isrepeat)
+  local message
+  if key == "w" then
+    message = string.format("%d %s %s %s %s", id, "input", "movement", "up", "true")
+  elseif key == "s" then
+    message = string.format("%d %s %s %s %s", id, "input", "movement", "down", "true")
+  elseif key == "d" then
+    message = string.format("%d %s %s %s %s", id, "input", "movement", "right", "true")
+  elseif key == "a" then
+    message = string.format("%d %s %s %s %s", id, "input", "movement", "left", "true")
+  end
+  if message then
+    UDP:send(message)
+  end
+end
+
+function love.keyreleased(key)
+  local message
+  if key == "w" then
+    message = string.format("%d %s %s %s %s", id, "input", "movement", "up", "false")
+  elseif key == "s" then
+    message = string.format("%d %s %s %s %s", id, "input", "movement", "down", "false")
+  elseif key == "d" then
+    message = string.format("%d %s %s %s %s", id, "input", "movement", "right", "false")
+  elseif key == "a" then
+    message = string.format("%d %s %s %s %s", id, "input", "movement", "left", "false")
+  end
+  if message then
+    UDP:send(message)
+  end
+end
+
 function create_player(id, x, y)
   players[id] = require "player"({x = x, y = y})
 end

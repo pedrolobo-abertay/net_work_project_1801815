@@ -70,40 +70,9 @@ function love.mousepressed(x, y, button)
 end
 
 function love.keypressed(key, scancode, isrepeat)
---  if key == "q" and player_number < PLAYER_MAX then
-  --  create_player(player_number+1)
---  end
 
-  if active_player then
-    if key == "w" then
-      players[active_player]:handle_input("movement", {direction = "up", state = true})
-    elseif key == "s" then
-      players[active_player]:handle_input("movement", {direction = "down", state = true})
-    elseif key == "d" then
-      players[active_player]:handle_input("movement", {direction = "right", state = true})
-    elseif key == "a" then
-      players[active_player]:handle_input("movement", {direction = "left", state = true})
-    end
-
-    if key == "c" then
-      active_player = active_player%player_number + 1
-    end
-  end
 end
 
-function love.keyreleased(key)
-  if active_player then
-    if key == "w" then
-      players[active_player]:handle_input("movement", {direction = "up", state = false})
-    elseif key == "s" then
-      players[active_player]:handle_input("movement", {direction = "down", state = false})
-    elseif key == "d" then
-      players[active_player]:handle_input("movement", {direction = "right", state = false})
-    elseif key == "a" then
-      players[active_player]:handle_input("movement", {direction = "left", state = false})
-    end
-  end
-end
 
 function create_player(id)
   local pos, color
@@ -154,6 +123,19 @@ function receive_client_data()
       if player_number < PLAYER_MAX then
         create_player(player_number+1)
         table.insert(players_info, {id = id, ip = msg_or_ip, port = port_or_nil})
+      end
+    elseif command == "input" then
+      local which_player
+      for i, which in ipairs(players_info) do
+        if which.id == id then
+          which_player = i
+          break
+        end
+      end
+      local type, args2 = args:match("^(%S+) (.*)")
+      if type == "movement" then
+        local direction, state = args2:match("^(%S+) (%S+)")
+        players[which_player]:handle_input("movement", {direction = direction, state = state == "true"})
       end
     end
   elseif msg_or_ip ~= "timeout" then
