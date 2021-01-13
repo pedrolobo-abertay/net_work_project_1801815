@@ -6,6 +6,7 @@ local port = 12345
 local UDP
 local id
 
+
 local players = {}
 local projectiles = {}
 
@@ -14,14 +15,13 @@ function love.load()
   love.window.setMode(SCREEN_SIZE.x, SCREEN_SIZE.y)
 
   math.randomseed(os.time())
-  id = math.random(10000)
 
   UDP = socket.udp()
 
   UDP:settimeout(0)
   UDP:setpeername(address, port)
 
-  local message = string.format("%d %s %s", id, "new_player", "0")
+  local message = string.format("%d %s %s", -1, "new_player", "0")
 
   UDP:send(message)
 end
@@ -40,22 +40,28 @@ function love.update(dt)
 end
 
 function love.mousepressed(x, y, button)
+  if not id then
+    return
+  end
   if button == 1 then
-    local message = string.format("%d %s %s %d %d", id, "input", "shoot", x, y)
+    local message = string.format("%s %s %s %d %d", id, "input", "shoot", x, y)
     UDP:send(message)
   end
 end
 
 function love.keypressed(key, scancode, isrepeat)
+  if not id then
+    return
+  end
   local message
   if key == "w" then
-    message = string.format("%d %s %s %s %s", id, "input", "movement", "up", "true")
+    message = string.format("%s %s %s %s %s", id, "input", "movement", "up", "true")
   elseif key == "s" then
-    message = string.format("%d %s %s %s %s", id, "input", "movement", "down", "true")
+    message = string.format("%s %s %s %s %s", id, "input", "movement", "down", "true")
   elseif key == "d" then
-    message = string.format("%d %s %s %s %s", id, "input", "movement", "right", "true")
+    message = string.format("%s %s %s %s %s", id, "input", "movement", "right", "true")
   elseif key == "a" then
-    message = string.format("%d %s %s %s %s", id, "input", "movement", "left", "true")
+    message = string.format("%s %s %s %s %s", id, "input", "movement", "left", "true")
   end
   if message then
     UDP:send(message)
@@ -63,15 +69,18 @@ function love.keypressed(key, scancode, isrepeat)
 end
 
 function love.keyreleased(key)
+  if not id then
+    return
+  end
   local message
   if key == "w" then
-    message = string.format("%d %s %s %s %s", id, "input", "movement", "up", "false")
+    message = string.format("%s %s %s %s %s", id, "input", "movement", "up", "false")
   elseif key == "s" then
-    message = string.format("%d %s %s %s %s", id, "input", "movement", "down", "false")
+    message = string.format("%s %s %s %s %s", id, "input", "movement", "down", "false")
   elseif key == "d" then
-    message = string.format("%d %s %s %s %s", id, "input", "movement", "right", "false")
+    message = string.format("%s %s %s %s %s", id, "input", "movement", "right", "false")
   elseif key == "a" then
-    message = string.format("%d %s %s %s %s", id, "input", "movement", "left", "false")
+    message = string.format("%s %s %s %s %s", id, "input", "movement", "left", "false")
   end
   if message then
     UDP:send(message)
@@ -89,12 +98,13 @@ end
 
 function receive_server_data()
   local data, message
-
   repeat
     data, message = UDP:receive()
     if data then
       local command, args = data:match("^(%S+) (.*)")
-      if command == "pos" then
+      if command == "id" then
+        id = args
+      elseif command == "pos" then
         local type, id, args2 = args:match("^(%S+) (table: %S+) (.*)")
         if type == "player" then
           local x, y = args2:match("^(%S+) (%S+)")

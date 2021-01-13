@@ -118,27 +118,23 @@ function receive_client_data()
   data, msg_or_ip, port_or_nil = UDP:receivefrom()
 
   if data then
-    id, command, args = data:match("^(%d+) (%S*) (.*)")
+    id, command, args = data:match("^(%S+) (%S*) (.*)")
+    id = tonumber(id)
     if command == "new_player" then
       if player_number < PLAYER_MAX then
         create_player(player_number+1)
-        table.insert(players_info, {id = id, ip = msg_or_ip, port = port_or_nil})
+        table.insert(players_info, {id = player_number, ip = msg_or_ip, port = port_or_nil})
+        local message = string.format("%s %s", "id", tostring(player_number))
+        UDP:sendto(message, msg_or_ip, port_or_nil)
       end
     elseif command == "input" then
-      local which_player
-      for i, which in ipairs(players_info) do
-        if which.id == id then
-          which_player = i
-          break
-        end
-      end
       local type, args2 = args:match("^(%S+) (.*)")
       if type == "movement" then
         local direction, state = args2:match("^(%S+) (%S+)")
-        players[which_player]:handle_input("movement", {direction = direction, state = state == "true"})
+        players[id]:handle_input("movement", {direction = direction, state = state == "true"})
       elseif type == "shoot" then
         local x, y = args2:match("^(%S+) (%S+)")
-        players[which_player]:handle_input("shoot", {mouse = {x = x, y = y}})
+        players[id]:handle_input("shoot", {mouse = {x = x, y = y}})
       end
     end
   elseif msg_or_ip ~= "timeout" then
