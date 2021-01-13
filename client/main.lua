@@ -117,6 +117,8 @@ function receive_server_data()
         local type, id = args:match("^(%S+) (table: %S+)")
         if type == "projectile" then
           projectiles[id] = nil
+        elseif type == "player" then
+          players[id] = nil
         end
       end
     elseif message ~= "timeout" then
