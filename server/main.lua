@@ -47,12 +47,13 @@ function love.update(dt)
 
   for i = #players, 1, -1 do
     if players[i].dead then
-      local message = string.format("%s %s %s", "kill", "player", tostring(players[i]))
+      local message = string.format("%s %s %d", "kill", "player", i)
       for j, info in ipairs(players_info) do
         UDP:sendto(message, info.ip, info.port)
       end
       table.remove(players, i)
       table.remove(players_info, i)
+      player_number = player_number - 1
     end
   end
 
@@ -143,10 +144,10 @@ function receive_client_data()
 end
 
 function send_world_state()
-  for i, info in ipairs(players_info) do
+  for _, info in ipairs(players_info) do
     for i, player in ipairs(players) do
-      local message = string.format("%s %s %s %d %d", "pos", "player",
-                                    tostring(player), player.pos.x, player.pos.y)
+      local message = string.format("%s %s %d %d %d", "pos", "player",
+                                    i, player.pos.x, player.pos.y)
       UDP:sendto(message, info.ip, info.port)
     end
     for i, projectile in ipairs(projectiles) do
