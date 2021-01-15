@@ -17,7 +17,7 @@ function _update(self, dt)
   end
 end
 
-function _create_projectile(pos)
+function _create_projectile(pos, color)
 
   local projectile = {
     radius = 10,
@@ -26,6 +26,7 @@ function _create_projectile(pos)
     type = "projectile",
     color = {r = 1, g = 1, b = 1},
     draw = _draw,
+    color = {r = color.r, g = color.g, b = color.b},
   }
   return projectile
 

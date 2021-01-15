@@ -6,11 +6,13 @@ local port = 12345
 local UDP
 local my_id
 local game_over = false
+local font_game_over
 
 local players = {}
 local projectiles = {}
 
 function love.load()
+  font_game_over = love.graphics.newFont("Fonts/PottaOne-Regular.ttf", 100)
 
   love.window.setMode(SCREEN_SIZE.x, SCREEN_SIZE.y)
 
@@ -29,7 +31,10 @@ end
 function love.draw()
   if game_over then
     love.graphics.setColor(1, 0, 1)
-    love.graphics.print("YOU DIED", SCREEN_SIZE.x/2, SCREEN_SIZE.y/2)
+    love.graphics.setFont(font_game_over)
+    local text = "YOU DIED"
+    love.graphics.print(text, SCREEN_SIZE.x/2 - font_game_over:getWidth(text)/2,
+                        SCREEN_SIZE.y/2 - font_game_over:getHeight(text)/2)
   end
 
   for _, player in pairs(players) do
@@ -92,18 +97,20 @@ function love.keyreleased(key)
   end
 end
 
-function create_player(id, x, y)
-  players[id] = require "player"({x = x, y = y})
+function create_player(id, x, y, color)
+  players[id] = require "player"({x = x, y = y}, color)
 end
 
-function create_projectile(id, x, y)
-  projectiles[id] = require "projectile"({x=x, y=y})
+function create_projectile(id, x, y, owner)
+  local color = players[owner].color
+  color = {r=color.r, g=color.g, b=color.b}
+  projectiles[id] = require "projectile"({x=x, y=y}, color)
 end
 
 
 function receive_server_data()
   local data, message
-  repeat
+  repeatsa
     data, message = UDP:receive()
     if data then
       local command, args = data:match("^(%S+) (.*)")
@@ -112,21 +119,21 @@ function receive_server_data()
       elseif command == "pos" then
         local type, args2 = args:match("^(%S+) (.*)")
         if type == "player" then
-          local id, x, y = args2:match("^(%S+) (%S+) (%S+)")
+          local id, x, y, r, g, b = args2:match("^(%S+) (%S+) (%S+) (%S+) (%S+) (%S+)")
           id = tonumber(id)
           if players[id] then
             players[id].pos.x = tonumber(x)
             players[id].pos.y = tonumber(y)
           else
-            create_player(id, tonumber(x), tonumber(y))
+            create_player(id, tonumber(x), tonumber(y), {r=tonumber(r), g=tonumber(g), b=tonumber(b)})
           end
         elseif type == "projectile" then
-          local id, x, y = args2:match("^(table: %S+) (%S+) (%S+)")
+          local id, x, y, owner = args2:match("^(table: %S+) (%S+) (%S+) (%S+)")
           if projectiles[id] then
             projectiles[id].pos.x = tonumber(x)
             projectiles[id].pos.y = tonumber(y)
           else
-            create_projectile(id, tonumber(x), tonumber(y))
+            create_projectile(id, tonumber(x), tonumber(y), tonumber(owner))
           end
         end
       elseif command == "kill" then

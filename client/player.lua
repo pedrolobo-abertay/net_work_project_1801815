@@ -55,7 +55,7 @@ local function _take_damage(self)
   end
 end
 
-local function _create_player(pos)
+local function _create_player(pos, color)
   local player = {
 
 
@@ -64,7 +64,7 @@ local function _create_player(pos)
     speed = 500,
     pos = {x = pos.x, y = pos.y},
     type = "player",
-    color = {r = 1, g = 1, b = 1},
+    color = color,
 
     --functions
     draw = _draw,

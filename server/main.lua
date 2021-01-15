@@ -12,6 +12,8 @@ local PLAYER_MAX = 4
 local players_info = {}
 
 function love.load()
+  love.math.setRandomSeed(love.timer.getTime())
+
   UDP = socket.udp()
   UDP:setsockname("*", port)
   UDP:settimeout(0)
@@ -76,27 +78,32 @@ end
 
 
 function create_player(id)
-  local pos, color
+  local pos = {}
+  local color = {}
+  local margin = 100
   player_number = player_number + 1
   if not active_player then
     active_player = 1
   end
 
-  if id == 1 then
-    pos = {x = 100, y = 100}
-    color = {r = 1, g = 1, b = 1}
-  elseif id == 2 then
-    pos = {x = 100, y = 500}
-    color = {r = 0, g = 1, b = 1}
-  elseif id == 3 then
-    pos = {x = 500, y = 100}
-    color = {r = 1, g = 0, b = 1}
-  elseif id == 4 then
-    pos = {x = 500, y = 500}
-    color = {r = 1, g = 1, b = 0}
-  end
+  repeat
+    local valid = true
+    color.r, color.g, color.b = love.math.random(), love.math.random(), love.math.random()
+    for _, player in ipairs(players) do
+      local dif = math.abs(player.color.r - color.r) + math.abs(player.color.g - color.g) + math.abs(player.color.b - color.b)
+      print(dif)
+      if dif <= 1 then
+        valid = false
+        break
+      end
+    end
+  until valid
+
+  pos.x = love.math.random(margin, SCREEN_SIZE.x - margin)
+  pos.y = love.math.random(margin, SCREEN_SIZE.y - margin)
 
   table.insert(players, require "player"({x = pos.x, y = pos.y}, id, color))
+
 end
 
 function check_collisions()
@@ -146,8 +153,8 @@ end
 function send_world_state()
   for _, info in ipairs(players_info) do
     for i, player in ipairs(players) do
-      local message = string.format("%s %s %d %d %d", "pos", "player",
-                                    i, player.pos.x, player.pos.y)
+      local message = string.format("%s %s %d %d %d %d %d %d", "pos", "player",
+                                    i, player.pos.x, player.pos.y, player.color.r, player.color.g, player.color.b)
       UDP:sendto(message, info.ip, info.port)
     end
     for i, projectile in ipairs(projectiles) do
