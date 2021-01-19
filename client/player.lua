@@ -57,8 +57,6 @@ end
 
 local function _create_player(pos, color)
   local player = {
-
-
     mov_vec = {x = 0, y = 0},
     radius = 20,
     speed = 500,

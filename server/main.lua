@@ -20,12 +20,7 @@ function love.load()
 end
 
 function love.draw()
-  for _, player in ipairs(players) do
-    player:draw()
-  end
-  for i, projectile in ipairs(projectiles) do
-    projectile:draw()
-  end
+
 end
 
 function love.update(dt)
@@ -80,7 +75,7 @@ end
 function create_player(id)
   local pos = {}
   local color = {}
-  local margin = 100
+  local margin = 20
   player_number = player_number + 1
   if not active_player then
     active_player = 1
@@ -89,12 +84,15 @@ function create_player(id)
   repeat
     local valid = true
     color.r, color.g, color.b = love.math.random(), love.math.random(), love.math.random()
-    for _, player in ipairs(players) do
-      local dif = math.abs(player.color.r - color.r) + math.abs(player.color.g - color.g) + math.abs(player.color.b - color.b)
-      print(dif)
-      if dif <= 1 then
-        valid = false
-        break
+    if color.r + color.g + color.b < 0.6 then
+      valid = false
+    else
+      for _, player in ipairs(players) do
+        local dif = math.abs(player.color.r - color.r) + math.abs(player.color.g - color.g) + math.abs(player.color.b - color.b)
+        if dif <= 1 then
+          valid = false
+          break
+        end
       end
     end
   until valid
@@ -103,7 +101,7 @@ function create_player(id)
   pos.y = love.math.random(margin, SCREEN_SIZE.y - margin)
 
   table.insert(players, require "player"({x = pos.x, y = pos.y}, id, color))
-
+  print("creating player", id)
 end
 
 function check_collisions()
@@ -129,7 +127,6 @@ function receive_client_data()
     id, command, args = data:match("^(%S+) (%S*) (.*)")
     id = tonumber(id)
     if command == "new_player" then
-      print(id)
       if player_number < PLAYER_MAX then
         create_player(player_number+1)
         table.insert(players_info, {id = player_number, ip = msg_or_ip, port = port_or_nil})
@@ -152,11 +149,13 @@ function receive_client_data()
 end
 
 function send_world_state()
+  print("----")
   for _, info in ipairs(players_info) do
     for i, player in ipairs(players) do
       local message = string.format("%s %s %d %d %d %d %d %d", "pos", "player",
                                     i, player.pos.x, player.pos.y, player.color.r, player.color.g, player.color.b)
       UDP:sendto(message, info.ip, info.port)
+      print(player.color.r, player.color.g, player.color.b)
     end
     for i, projectile in ipairs(projectiles) do
       local message = string.format("%s %s %s %d %d %d", "pos", "projectile",

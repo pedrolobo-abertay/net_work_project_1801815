@@ -9,8 +9,10 @@ local game_over = false
 local font_game_over
 local title_font
 local instructions_font
-local waiting_font
+local wait_font
 local state = "main_menu"
+local wait_timer = 0
+local max_timeout = 5
 
 local players = {}
 local projectiles = {}
@@ -19,7 +21,7 @@ function love.load()
   font_game_over = love.graphics.newFont("Fonts/PottaOne-Regular.ttf", 100)
   title_font = love.graphics.newFont("Fonts/PottaOne-Regular.ttf", 80)
   instructions_font = love.graphics.newFont("Fonts/PottaOne-Regular.ttf", 80)
-  waiting_font = love.graphics.newFont("Fonts/PottaOne-Regular.ttf", 80)
+  wait_font = love.graphics.newFont("Fonts/PottaOne-Regular.ttf", 50)
 
   love.window.setMode(SCREEN_SIZE.x, SCREEN_SIZE.y)
 
@@ -43,6 +45,12 @@ function love.draw()
 end
 
 function love.update(dt)
+  if state == "wait" then
+    wait_timer = wait_timer + dt
+    if wait_timer > max_timeout then
+      wait_timer = max_timeout
+    end
+  end
   receive_server_data()
 end
 
@@ -79,7 +87,10 @@ function love.keypressed(key, scancode, isrepeat)
       local message = string.format("%d %s %s", -1, "new_player", "0")
       UDP:send(message)
       state = "wait"
+      wait_timer = 0
     end
+  elseif state == "wait" and key == "e" and wait_time == max_timeout then
+    state = "main_menu"
   end
 end
 
@@ -196,8 +207,11 @@ end
 
 function wait_draw()
   love.graphics.setColor(1, 0, 1)
-  love.graphics.setFont(waiting_font)
+  love.graphics.setFont(wait_font)
   local wait = "Waiting server to respond..."
-  love.graphics.print(wait, SCREEN_SIZE.x/2 - title_font:getWidth(wait)/2, 500)
+  if wait_timer >= max_timeout then
+    wait = "Server is not responding, press 'e' to return to menu"
+  end
+  love.graphics.print(wait, SCREEN_SIZE.x/2 - wait_font:getWidth(wait)/2, 500)
 
 end
