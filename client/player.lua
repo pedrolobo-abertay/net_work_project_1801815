@@ -60,7 +60,7 @@ local function _create_player(pos, color)
 
 
     mov_vec = {x = 0, y = 0},
-    radius = 10,
+    radius = 20,
     speed = 500,
     pos = {x = pos.x, y = pos.y},
     type = "player",

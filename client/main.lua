@@ -110,7 +110,7 @@ end
 
 function receive_server_data()
   local data, message
-  repeatsa
+  repeat
     data, message = UDP:receive()
     if data then
       local command, args = data:match("^(%S+) (.*)")
