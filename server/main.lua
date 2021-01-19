@@ -101,7 +101,6 @@ function create_player(id)
   pos.y = love.math.random(margin, SCREEN_SIZE.y - margin)
 
   table.insert(players, require "player"({x = pos.x, y = pos.y}, id, color))
-  print("creating player", id)
 end
 
 function check_collisions()
@@ -149,13 +148,11 @@ function receive_client_data()
 end
 
 function send_world_state()
-  print("----")
   for _, info in ipairs(players_info) do
     for i, player in ipairs(players) do
       local message = string.format("%s %s %d %d %d %d %d %d", "pos", "player",
                                     i, player.pos.x, player.pos.y, player.color.r, player.color.g, player.color.b)
       UDP:sendto(message, info.ip, info.port)
-      print(player.color.r, player.color.g, player.color.b)
     end
     for i, projectile in ipairs(projectiles) do
       local message = string.format("%s %s %s %d %d %d", "pos", "projectile",

@@ -89,7 +89,7 @@ function love.keypressed(key, scancode, isrepeat)
       state = "wait"
       wait_timer = 0
     end
-  elseif state == "wait" and key == "e" and wait_time == max_timeout then
+  elseif state == "wait" and key == "e" and wait_timer >= max_timeout then
     state = "main_menu"
   end
 end
