@@ -29,7 +29,6 @@ function _create_projectile(pos, color)
     color = {r = color.r, g = color.g, b = color.b},
   }
   return projectile
-
 end
 
 return _create_projectile

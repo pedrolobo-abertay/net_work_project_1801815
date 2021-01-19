@@ -7,12 +7,19 @@ local UDP
 local my_id
 local game_over = false
 local font_game_over
+local title_font
+local instructions_font
+local waiting_font
+local state = "main_menu"
 
 local players = {}
 local projectiles = {}
 
 function love.load()
   font_game_over = love.graphics.newFont("Fonts/PottaOne-Regular.ttf", 100)
+  title_font = love.graphics.newFont("Fonts/PottaOne-Regular.ttf", 80)
+  instructions_font = love.graphics.newFont("Fonts/PottaOne-Regular.ttf", 80)
+  waiting_font = love.graphics.newFont("Fonts/PottaOne-Regular.ttf", 80)
 
   love.window.setMode(SCREEN_SIZE.x, SCREEN_SIZE.y)
 
@@ -23,25 +30,15 @@ function love.load()
   UDP:settimeout(0)
   UDP:setpeername(address, port)
 
-  local message = string.format("%d %s %s", -1, "new_player", "0")
-
-  UDP:send(message)
 end
 
 function love.draw()
-  if game_over then
-    love.graphics.setColor(1, 0, 1)
-    love.graphics.setFont(font_game_over)
-    local text = "YOU DIED"
-    love.graphics.print(text, SCREEN_SIZE.x/2 - font_game_over:getWidth(text)/2,
-                        SCREEN_SIZE.y/2 - font_game_over:getHeight(text)/2)
-  end
-
-  for _, player in pairs(players) do
-    player:draw()
-  end
-  for i, projectile in pairs(projectiles) do
-    projectile:draw()
+  if state == "main_menu" then
+    main_menu_draw()
+  elseif state == "game" then
+    game_draw()
+  elseif state == "wait" then
+    wait_draw()
   end
 end
 
@@ -50,7 +47,7 @@ function love.update(dt)
 end
 
 function love.mousepressed(x, y, button)
-  if not my_id or game_over then
+  if not my_id or game_over or state ~= "game" then
     return
   end
   if button == 1 then
@@ -60,40 +57,50 @@ function love.mousepressed(x, y, button)
 end
 
 function love.keypressed(key, scancode, isrepeat)
-  if not my_id or game_over then
-    return
-  end
-  local message
-  if key == "w" then
-    message = string.format("%s %s %s %s %s", my_id, "input", "movement", "up", "true")
-  elseif key == "s" then
-    message = string.format("%s %s %s %s %s", my_id, "input", "movement", "down", "true")
-  elseif key == "d" then
-    message = string.format("%s %s %s %s %s", my_id, "input", "movement", "right", "true")
-  elseif key == "a" then
-    message = string.format("%s %s %s %s %s", my_id, "input", "movement", "left", "true")
-  end
-  if message then
-    UDP:send(message)
+  if state == "game" then
+    if not my_id or game_over then
+      return
+    end
+    local message
+    if key == "w" then
+      message = string.format("%s %s %s %s %s", my_id, "input", "movement", "up", "true")
+    elseif key == "s" then
+      message = string.format("%s %s %s %s %s", my_id, "input", "movement", "down", "true")
+    elseif key == "d" then
+      message = string.format("%s %s %s %s %s", my_id, "input", "movement", "right", "true")
+    elseif key == "a" then
+      message = string.format("%s %s %s %s %s", my_id, "input", "movement", "left", "true")
+    end
+    if message then
+      UDP:send(message)
+    end
+  elseif state == "main_menu" then
+    if key == "e" then
+      local message = string.format("%d %s %s", -1, "new_player", "0")
+      UDP:send(message)
+      state = "wait"
+    end
   end
 end
 
 function love.keyreleased(key)
-  if not my_id or game_over then
-    return
-  end
-  local message
-  if key == "w" then
-    message = string.format("%s %s %s %s %s", my_id, "input", "movement", "up", "false")
-  elseif key == "s" then
-    message = string.format("%s %s %s %s %s", my_id, "input", "movement", "down", "false")
-  elseif key == "d" then
-    message = string.format("%s %s %s %s %s", my_id, "input", "movement", "right", "false")
-  elseif key == "a" then
-    message = string.format("%s %s %s %s %s", my_id, "input", "movement", "left", "false")
-  end
-  if message then
-    UDP:send(message)
+  if state == "game" then
+    if not my_id or game_over then
+      return
+    end
+    local message
+    if key == "w" then
+      message = string.format("%s %s %s %s %s", my_id, "input", "movement", "up", "false")
+    elseif key == "s" then
+      message = string.format("%s %s %s %s %s", my_id, "input", "movement", "down", "false")
+    elseif key == "d" then
+      message = string.format("%s %s %s %s %s", my_id, "input", "movement", "right", "false")
+    elseif key == "a" then
+      message = string.format("%s %s %s %s %s", my_id, "input", "movement", "left", "false")
+    end
+    if message then
+      UDP:send(message)
+    end
   end
 end
 
@@ -116,6 +123,7 @@ function receive_server_data()
       local command, args = data:match("^(%S+) (.*)")
       if command == "id" then
         my_id = tonumber(args)
+        state = "game"
       elseif command == "pos" then
         local type, args2 = args:match("^(%S+) (.*)")
         if type == "player" then
@@ -154,4 +162,42 @@ function receive_server_data()
       error("network error:"..tostring(message))
     end
   until not data
+end
+
+function game_draw()
+  if game_over then
+    love.graphics.setColor(1, 0, 1)
+    love.graphics.setFont(font_game_over)
+    local text = "YOU DIED"
+    love.graphics.print(text, SCREEN_SIZE.x/2 - font_game_over:getWidth(text)/2,
+                        SCREEN_SIZE.y/2 - font_game_over:getHeight(text)/2)
+  end
+
+  for _, player in pairs(players) do
+    player:draw()
+  end
+  for i, projectile in pairs(projectiles) do
+    projectile:draw()
+  end
+end
+
+function main_menu_draw()
+  love.graphics.setColor(1, 0, 1)
+  love.graphics.setFont(title_font)
+  local title = "Welcome to my project"
+  love.graphics.print(title, SCREEN_SIZE.x/2 - title_font:getWidth(title)/2, 200)
+
+  local instructions = "Press the key 'e' to enter the game"
+  love.graphics.setFont(instructions_font)
+  love.graphics.print(instructions, SCREEN_SIZE.x/2 - instructions_font:getWidth(instructions)/2,
+                      SCREEN_SIZE.y/2 - instructions_font:getHeight(instructions)/2)
+
+end
+
+function wait_draw()
+  love.graphics.setColor(1, 0, 1)
+  love.graphics.setFont(waiting_font)
+  local wait = "Waiting server to respond..."
+  love.graphics.print(wait, SCREEN_SIZE.x/2 - title_font:getWidth(wait)/2, 500)
+
 end

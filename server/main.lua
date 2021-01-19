@@ -129,6 +129,7 @@ function receive_client_data()
     id, command, args = data:match("^(%S+) (%S*) (.*)")
     id = tonumber(id)
     if command == "new_player" then
+      print(id)
       if player_number < PLAYER_MAX then
         create_player(player_number+1)
         table.insert(players_info, {id = player_number, ip = msg_or_ip, port = port_or_nil})
