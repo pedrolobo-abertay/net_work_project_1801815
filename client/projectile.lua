@@ -7,17 +7,11 @@ function _draw(self)
 end
 
 function _update(self, dt)
-
   self.pos.x = self.pos.x + self.direction.x * dt * self.speed
   self.pos.y = self.pos.y + self.direction.y * dt * self.speed
-
-  if self.pos.x + self.radius < 0 or self.pos.x - self.radius  > SCREEN_SIZE.x or
-     self.pos.y + self.radius < 0 or self.pos.y - self.radius > SCREEN_SIZE.y then
-    self.kill = true
-  end
 end
 
-function _create_projectile(pos, color)
+function _create_projectile(pos, color, dx, dy)
 
   local projectile = {
     radius = 10,
@@ -27,6 +21,9 @@ function _create_projectile(pos, color)
     color = {r = 1, g = 1, b = 1},
     draw = _draw,
     color = {r = color.r, g = color.g, b = color.b},
+    direction = {x = dx, y = dy},
+
+    update = _update,
   }
   return projectile
 end

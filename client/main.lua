@@ -13,6 +13,8 @@ local wait_font
 local state = "main_menu"
 local wait_timer = 0
 local max_timeout = 5
+local using_interpolation = true
+local ui_font
 
 local players = {}
 local projectiles = {}
@@ -22,6 +24,7 @@ function love.load()
   title_font = love.graphics.newFont("Fonts/PottaOne-Regular.ttf", 80)
   instructions_font = love.graphics.newFont("Fonts/PottaOne-Regular.ttf", 80)
   wait_font = love.graphics.newFont("Fonts/PottaOne-Regular.ttf", 50)
+  ui_font = love.graphics.newFont("Fonts/PottaOne-Regular.ttf", 30)
 
   love.window.setMode(SCREEN_SIZE.x, SCREEN_SIZE.y)
 
@@ -50,6 +53,13 @@ function love.update(dt)
     if wait_timer > max_timeout then
       wait_timer = max_timeout
     end
+  elseif state == "game" and using_interpolation then
+    for _, player in pairs(players) do
+      player:update(dt)
+    end
+    for _, projectile in pairs(projectiles) do
+      projectile:update(dt)
+    end
   end
   receive_server_data()
 end
@@ -70,7 +80,9 @@ function love.keypressed(key, scancode, isrepeat)
       return
     end
     local message
-    if key == "w" then
+    if key == "i" then
+      using_interpolation = not using_interpolation
+    elseif key == "w" then
       message = string.format("%s %s %s %s %s", my_id, "input", "movement", "up", "true")
     elseif key == "s" then
       message = string.format("%s %s %s %s %s", my_id, "input", "movement", "down", "true")
@@ -115,14 +127,14 @@ function love.keyreleased(key)
   end
 end
 
-function create_player(id, x, y, color)
-  players[id] = require "player"({x = x, y = y}, color)
+function create_player(id, x, y, color, dx, dy)
+  players[id] = require "player"({x = x, y = y}, color, dx, dy)
 end
 
-function create_projectile(id, x, y, owner)
+function create_projectile(id, x, y, owner, dx, dy)
   local color = players[owner].color
   color = {r=color.r, g=color.g, b=color.b}
-  projectiles[id] = require "projectile"({x=x, y=y}, color)
+  projectiles[id] = require "projectile"({x=x, y=y}, color, dx, dy)
 end
 
 
@@ -138,21 +150,26 @@ function receive_server_data()
       elseif command == "pos" then
         local type, args2 = args:match("^(%S+) (.*)")
         if type == "player" then
-          local id, x, y, r, g, b = args2:match("^(%S+) (%S+) (%S+) (%S+) (%S+) (%S+)")
+          local id, x, y, r, g, b, dx, dy = args2:match("^(%S+) (%S+) (%S+) (%S+) (%S+) (%S+) (%S+) (%S+)")
           id = tonumber(id)
           if players[id] then
             players[id].pos.x = tonumber(x)
             players[id].pos.y = tonumber(y)
+            players[id].mov_vec.x = tonumber(dx)
+            players[id].mov_vec.y = tonumber(dy)
           else
-            create_player(id, tonumber(x), tonumber(y), {r=tonumber(r), g=tonumber(g), b=tonumber(b)})
+            create_player(id, tonumber(x), tonumber(y), {r=tonumber(r), g=tonumber(g), b=tonumber(b)},
+                          tonumber(dx), tonumber(dy))
           end
         elseif type == "projectile" then
-          local id, x, y, owner = args2:match("^(table: %S+) (%S+) (%S+) (%S+)")
+          local id, x, y, owner, dx, dy = args2:match("^(table: %S+) (%S+) (%S+) (%S+) (%S+) (%S+)")
           if projectiles[id] then
             projectiles[id].pos.x = tonumber(x)
             projectiles[id].pos.y = tonumber(y)
+            projectiles[id].direction.x = tonumber(dx)
+            projectiles[id].direction.y = tonumber(dy)
           else
-            create_projectile(id, tonumber(x), tonumber(y), tonumber(owner))
+            create_projectile(id, tonumber(x), tonumber(y), tonumber(owner), tonumber(dx), tonumber(dy))
           end
         end
       elseif command == "kill" then
@@ -190,6 +207,9 @@ function game_draw()
   for i, projectile in pairs(projectiles) do
     projectile:draw()
   end
+  love.graphics.setColor(0, 1, 1)
+  love.graphics.setFont(ui_font)
+  love.graphics.print("Using interpolation is: ".. tostring(using_interpolation), 5, 5)
 end
 
 function main_menu_draw()

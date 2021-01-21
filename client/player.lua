@@ -19,20 +19,6 @@ function _draw(self)
 end
 
 local function _update(self, dt)
-  self.mov_vec = {x = 0, y = 0};
-  if self.movement_input.up then
-    self.mov_vec.y = self.mov_vec.y - 1
-  end
-  if self.movement_input.down then
-    self.mov_vec.y = self.mov_vec.y + 1
-  end
-  if self.movement_input.right then
-    self.mov_vec.x = self.mov_vec.x + 1
-  end
-  if self.movement_input.left then
-    self.mov_vec.x = self.mov_vec.x - 1
-  end
-
   normalize(self.mov_vec)
 
   self.pos.x = self.pos.x + self.mov_vec.x * dt * self.speed
@@ -43,9 +29,6 @@ local function _update(self, dt)
 
   self.pos.y = math.min(self.pos.y, SCREEN_SIZE.y - self.radius)
   self.pos.y = math.max(self.pos.y, self.radius)
-
-  self.shoot_timer = math.max(self.shoot_timer - dt, 0)
-
 end
 
 local function _take_damage(self)
@@ -55,9 +38,9 @@ local function _take_damage(self)
   end
 end
 
-local function _create_player(pos, color)
+local function _create_player(pos, color, dx, dy)
   local player = {
-    mov_vec = {x = 0, y = 0},
+    mov_vec = {x = dx, y = dy},
     radius = 20,
     speed = 500,
     pos = {x = pos.x, y = pos.y},

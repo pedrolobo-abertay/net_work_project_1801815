@@ -150,13 +150,15 @@ end
 function send_world_state()
   for _, info in ipairs(players_info) do
     for i, player in ipairs(players) do
-      local message = string.format("%s %s %d %d %d %d %d %d", "pos", "player",
-                                    i, player.pos.x, player.pos.y, player.color.r, player.color.g, player.color.b)
+      local message = string.format("%s %s %d %d %d %d %d %d %d %d", "pos", "player",
+                                    i, player.pos.x, player.pos.y, player.color.r, player.color.g, player.color.b,
+                                    player.mov_vec.x, player.mov_vec.y)
       UDP:sendto(message, info.ip, info.port)
     end
     for i, projectile in ipairs(projectiles) do
-      local message = string.format("%s %s %s %d %d %d", "pos", "projectile",
-                                    tostring(projectile), projectile.pos.x, projectile.pos.y, projectile.owner)
+      local message = string.format("%s %s %s %d %d %d %d %d", "pos", "projectile",
+                                    tostring(projectile), projectile.pos.x, projectile.pos.y, projectile.owner,
+                                    projectile.direction.x, projectile.direction.y)
       UDP:sendto(message, info.ip, info.port)
     end
   end
