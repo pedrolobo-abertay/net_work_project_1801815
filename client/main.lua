@@ -185,6 +185,9 @@ function receive_server_data()
             game_over = true
           end
         end
+      elseif command == "update_health" then
+        local id, health = args:match("^(%S+) (%S+)")
+        players[id].health = health
       end
     elseif message ~= "timeout" then
       error("network error:"..tostring(message))

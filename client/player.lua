@@ -13,9 +13,17 @@ local function normalize(mov_vec)
 end
 
 function _draw(self)
+  local health_bar_w = 50
   love.graphics.setColor(self.color.r, self.color.g, self.color.b)
 
   love.graphics.circle("fill", self.pos.x, self.pos.y, self.radius)
+
+  love.graphics.setColor(1, 1, 1)
+  love.graphics.rectangle("line", self.pos.x, self.pos.y - 5, health_bar_w, 5)
+  love.graphics.setColor(1, 0, 0)
+  love.graphics.rectangle("fill", self.pos.x, self.pos.y - 5,
+                          (self.health/self.max_health)*health_bar_w, 5)
+
 end
 
 local function _update(self, dt)
@@ -31,13 +39,6 @@ local function _update(self, dt)
   self.pos.y = math.max(self.pos.y, self.radius)
 end
 
-local function _take_damage(self)
-  self.health = self.health - self.damage
-  if self.health <= 0 then
-    self.dead = true
-  end
-end
-
 local function _create_player(pos, color, dx, dy)
   local player = {
     mov_vec = {x = dx, y = dy},
@@ -46,6 +47,8 @@ local function _create_player(pos, color, dx, dy)
     pos = {x = pos.x, y = pos.y},
     type = "player",
     color = color,
+    health = 100,
+    max_health = 100,
 
     --functions
     draw = _draw,

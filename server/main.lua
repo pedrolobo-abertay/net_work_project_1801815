@@ -111,6 +111,10 @@ function check_collisions()
          player.id ~= projectile.owner then
            player:take_damage()
            projectile.kill = true
+           local message = string.format("%s %d %d", "update_health", player.id, player.health)
+           for _, info in pairs(players_info) do
+             UDP:sendto(message, info.ip, info.port)
+           end
       end
     end
   end
