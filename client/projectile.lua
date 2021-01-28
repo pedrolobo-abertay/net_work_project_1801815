@@ -1,4 +1,4 @@
-function _draw(self)
+local function _draw(self)
 
   love.graphics.setColor(self.color.r, self.color.g, self.color.b)
 
@@ -6,12 +6,12 @@ function _draw(self)
 
 end
 
-function _update(self, dt)
+local function _update(self, dt)
   self.pos.x = self.pos.x + self.direction.x * dt * self.speed
   self.pos.y = self.pos.y + self.direction.y * dt * self.speed
 end
 
-function _create_projectile(pos, color, dx, dy)
+local function _create_projectile(pos, color, dx, dy)
 
   local projectile = {
     radius = 10,

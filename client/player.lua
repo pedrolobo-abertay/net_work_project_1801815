@@ -12,17 +12,22 @@ local function normalize(mov_vec)
   mov_vec.y = mov_vec.y/l
 end
 
-function _draw(self)
-  local health_bar_w = 50
+local function _draw(self)
+  --Player
   love.graphics.setColor(self.color.r, self.color.g, self.color.b)
-
   love.graphics.circle("fill", self.pos.x, self.pos.y, self.radius)
-
+  --Health bar
+  local health_bar_w = 50
+  local health_bar_h = 10
+  local health_bar_vmargin = 10
+  local bar_x = self.pos.x - health_bar_w/2
+  local bar_y = self.pos.y - self.radius - health_bar_h - health_bar_vmargin
+  love.graphics.setLineWidth(2)
   love.graphics.setColor(1, 1, 1)
-  love.graphics.rectangle("line", self.pos.x, self.pos.y - 5, health_bar_w, 5)
+  love.graphics.rectangle("line", bar_x, bar_y, health_bar_w, health_bar_h)
   love.graphics.setColor(1, 0, 0)
-  love.graphics.rectangle("fill", self.pos.x, self.pos.y - 5,
-                          (self.health/self.max_health)*health_bar_w, 5)
+  love.graphics.rectangle("fill", bar_x, bar_y,
+                          (self.health/self.max_health)*health_bar_w, health_bar_h)
 
 end
 

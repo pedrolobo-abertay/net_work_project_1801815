@@ -12,7 +12,7 @@ local function normalize(mov_vec)
   mov_vec.y = mov_vec.y/l
 end
 
-function _draw(self)
+local function _draw(self)
   love.graphics.setColor(self.color.r, self.color.g, self.color.b)
 
   love.graphics.circle("fill", self.pos.x, self.pos.y, self.radius)
