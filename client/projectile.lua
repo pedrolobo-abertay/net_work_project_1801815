@@ -18,11 +18,10 @@ local function _create_projectile(pos, color, dx, dy)
     speed = 500,
     pos = {x = pos.x, y = pos.y},
     type = "projectile",
-    color = {r = 1, g = 1, b = 1},
-    draw = _draw,
     color = {r = color.r, g = color.g, b = color.b},
     direction = {x = dx, y = dy},
 
+    draw = _draw,
     update = _update,
   }
   return projectile

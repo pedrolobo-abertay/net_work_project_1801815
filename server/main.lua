@@ -10,6 +10,14 @@ local active_player
 local player_number = 0
 local PLAYER_MAX = 4
 local players_info = {}
+local AVAILABLE_COLORS = {
+  {r = 1, g = 0, b = 0},
+  {r = 0, g = 1, b = 0},
+  {r = 0, g = 0, b = 1},
+  {r = 1, g = 1, b = 1},
+  {r = 0, g = 1, b = 1},
+  {r = 1, g = 0, b = 1},
+}
 
 function love.load()
   love.math.setRandomSeed(love.timer.getTime())
@@ -52,6 +60,10 @@ function love.update(dt)
       player_number = player_number - 1
     end
   end
+  for i = 1, #players_info do
+    players_info[i] = i
+    players[i] = i
+  end
 
   for i = #projectiles, 1, -1 do
     if projectiles[i].kill then
@@ -80,21 +92,23 @@ function create_player(id)
     active_player = 1
   end
 
+  local chosen_color
   repeat
     local valid = true
-    color.r, color.g, color.b = love.math.random(), love.math.random(), love.math.random()
-    if color.r + color.g + color.b < 0.6 then
-      valid = false
-    else
-      for _, player in ipairs(players) do
-        local dif = math.abs(player.color.r - color.r) + math.abs(player.color.g - color.g) + math.abs(player.color.b - color.b)
-        if dif <= 1 then
-          valid = false
-          break
-        end
+    chosen_color = AVAILABLE_COLORS[math.random(1, #AVAILABLE_COLORS)]
+    for _, player in pairs(players) do
+      if player.color.r == chosen_color.r and
+         player.color.g == chosen_color.g and
+         player.color.b == chosen_color.b then
+        valid = false
+        break
       end
     end
   until valid
+
+  color.r = chosen_color.r
+  color.g = chosen_color.g
+  color.b = chosen_color.b
 
   pos.x = love.math.random(margin, SCREEN_SIZE.x - margin)
   pos.y = love.math.random(margin, SCREEN_SIZE.y - margin)
