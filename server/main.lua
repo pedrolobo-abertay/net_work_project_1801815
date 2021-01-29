@@ -27,9 +27,6 @@ function love.load()
   UDP:settimeout(0)
 end
 
-function love.draw()
-end
-
 function love.update(dt)
 
   receive_client_data()
