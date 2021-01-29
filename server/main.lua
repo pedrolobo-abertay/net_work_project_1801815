@@ -61,8 +61,8 @@ function love.update(dt)
     end
   end
   for i = 1, #players_info do
-    players_info[i] = i
-    players[i] = i
+    players_info[i].id = i
+    players[i].id = i
   end
 
   for i = #projectiles, 1, -1 do
